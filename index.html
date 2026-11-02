@@ -191,7 +191,7 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const NS='http://www.w3.org/2000/svg';
 const css=v=>getComputedStyle(document.body).getPropertyValue(v).trim();
 const nf=n=>Math.round(n).toLocaleString('fr-FR').replace(/ /g,' ');
-const F=n=>nf(n)+' F';
+const F=n=>(n>=1000?nf(n):(Math.round(n*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}))+' €';
 const short=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' M':n>=1e3?Math.round(n/1e3)+' k':n;
 let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
 const pick=a=>a[Math.floor(rnd()*a.length)];
@@ -206,10 +206,10 @@ const now=new Date('2026-11-02T14:20:00');
 const ORDERS=Array.from({length:146},(_,i)=>{
   const t=new Date(now-i*rnd()*2.6e6-i*4e5),r=rnd(),z=pick(ZONES);
   const st=i<9?pick(['route','route','attente','retard']):r<.8?'livre':r<.88?'retard':r<.94?'route':'annule';
-  return {ref:'KL-'+(4830-i),cli:pick(NAMES),mer:pick(MERCH),zone:z,cour:COUR[Math.floor(rnd()*COUR.length)],st,amt:Math.round((1500+rnd()*rnd()*14000)/100)*100,t,km:+(1.5+rnd()*11).toFixed(1)};
+  return {ref:'KL-'+(4830-i),cli:pick(NAMES),mer:pick(MERCH),zone:z,cour:COUR[Math.floor(rnd()*COUR.length)],st,amt:Math.round((12+rnd()*rnd()*85)*2)/2,t,km:+(1.5+rnd()*11).toFixed(1)};
 });
 $('#navN').textContent=ORDERS.filter(o=>o.st==='route'||o.st==='attente').length;
-function series(days,offset=0){seed=101+days+offset;return Array.from({length:days},(_,i)=>{const d=new Date(now);d.setDate(d.getDate()-(days-1-i)-offset);const w=d.getDay();const base=520000+(d-new Date('2026-06-01'))/864e5*2600;return {d,v:base*(w===0?.6:w===6?1.25:1)*(.85+rnd()*.3)}})}
+function series(days,offset=0){seed=101+days+offset;return Array.from({length:days},(_,i)=>{const d=new Date(now);d.setDate(d.getDate()-(days-1-i)-offset);const w=d.getDay();const base=4300+(d-new Date('2026-06-01'))/864e5*20;return {d,v:base*(w===0?.6:w===6?1.25:1)*(.85+rnd()*.3)}})}
 
 // ——— Icône de statut (jamais la couleur seule) ———
 const stBadge=k=>{const [l,c,p]=ST[k];return `<span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="var(--${c})" stroke-width="2" stroke-linecap="round"><path d="${p}"/></svg>${l}</span>`};
@@ -220,8 +220,8 @@ function spark(vals,col){const w=200,h=34,mx=Math.max(...vals),mn=Math.min(...va
 let R=30;
 function kpis(){
   const cur=series(R),prev=series(R,R),sum=a=>a.reduce((s,x)=>s+x.v,0);
-  const ca=sum(cur),pca=sum(prev),cmd=Math.round(ca/6200),pcmd=Math.round(pca/6150);
-  const K=[['Chiffre d\'affaires',F(ca),ca/pca-1,cur.map(x=>x.v),'var(--c1)'],['Commandes',nf(cmd),cmd/pcmd-1,cur.map(x=>x.v/6200),'var(--c2)'],['Délai moyen','34 min',-.06,cur.map(x=>40-x.v/1e5),'var(--c3)',true],['Taux de réussite','96,4 %',.012,cur.map(x=>x.v%7),'var(--c4)']];
+  const ca=sum(cur),pca=sum(prev),cmd=Math.round(ca/24),pcmd=Math.round(pca/23.8);
+  const K=[['Chiffre d\'affaires',F(ca),ca/pca-1,cur.map(x=>x.v),'var(--c1)'],['Commandes',nf(cmd),cmd/pcmd-1,cur.map(x=>x.v/24),'var(--c2)'],['Délai moyen','34 min',-.06,cur.map(x=>40-x.v/800),'var(--c3)',true],['Taux de réussite','96,4 %',.012,cur.map(x=>x.v%7),'var(--c4)']];
   $('#kpis').innerHTML=K.map(([l,v,d,s,c,inv])=>{const good=inv?d<0:d>0;return `<div class="card kpi"><div class="l">${l}<span class="mono">${R} j</span></div><div class="v">${v}</div><div class="d"><span class="${good?'up':'down'}">${d>0?'▲':'▼'} ${Math.abs(d*100).toFixed(1).replace('.',',')} %</span>vs période précédente</div>${spark(s,c)}</div>`}).join('');
   $('#caSub').textContent=`${F(ca)} sur ${R} jours · moyenne ${F(ca/R)} par jour`;
 }
@@ -306,7 +306,7 @@ function orders(){const f=filtered(),pages=Math.max(1,Math.ceil(f.length/PER));p
   $$('#orders th[data-k]').forEach(th=>th.onclick=()=>{sort={k:th.dataset.k,asc:sort.k===th.dataset.k?!sort.asc:false};orders()})}
 ['q','fs','fz'].forEach(i=>$('#'+i).addEventListener('input',()=>{page=0;orders()}));
 $('#prev').onclick=()=>{page--;orders()};$('#next').onclick=()=>{page++;orders()};
-function csv(){const f=filtered(),rows=[['Référence','Client','Commerçant','Zone','Livreur','Statut','Montant (FCFA)','Distance (km)','Date']].concat(f.map(o=>[o.ref,o.cli,o.mer,o.zone,o.cour[0],ST[o.st][0],o.amt,o.km,o.t.toISOString()]));
+function csv(){const f=filtered(),rows=[['Référence','Client','Commerçant','Zone','Livreur','Statut','Montant (EUR)','Distance (km)','Date']].concat(f.map(o=>[o.ref,o.cli,o.mer,o.zone,o.cour[0],ST[o.st][0],o.amt,o.km,o.t.toISOString()]));
   const b=new Blob(['﻿'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='kilo-commandes.csv';a.click();toast(f.length+' commandes exportées en CSV')}
 $('#exp1').onclick=csv;$('#exp2').onclick=csv;
 
@@ -316,7 +316,7 @@ function openD(ref){const o=ORDERS.find(x=>x.ref===ref),t=o.t,hm=d=>new Date(t.g
   const steps=[['Commande reçue',0,1],['Prise en charge par '+o.cour[0].split(' ')[0],6,1],['Retrait chez '+o.mer,14,o.st!=='attente'],['En route vers '+o.zone,17,['route','livre','retard'].includes(o.st)],['Livrée',31,o.st==='livre']];
   $('#drawer').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:start"><div><span class="mono" style="color:var(--mute)">${o.ref}</span><h2>${o.cli}</h2>${stBadge(o.st)}</div><button class="ib" onclick="$('#drawer').classList.remove('on')" aria-label="Fermer">✕</button></div>
   <div class="tl">${steps.map(([l,d,ok])=>`<div><i class="${ok?'ok':''}"></i><span style="${ok?'':'color:var(--mute)'}">${l}</span><span class="mono" style="color:var(--mute)">${ok?hm(d):'—'}</span></div>`).join('')}</div>
-  <div class="kv"><span>Commerçant</span>${o.mer}<span>Zone</span>${o.zone}<span>Distance</span>${String(o.km).replace('.',',')} km<span>Montant</span><b class="num">${F(o.amt)}</b><span>Frais de course</span><span class="num">${F(500+o.km*150)}</span><span>Paiement</span>${o.amt%3?'Orange Money':'Espèces à la livraison'}</div>
+  <div class="kv"><span>Commerçant</span>${o.mer}<span>Zone</span>${o.zone}<span>Distance</span>${String(o.km).replace('.',',')} km<span>Montant</span><b class="num">${F(o.amt)}</b><span>Frais de course</span><span class="num">${F(3.5+Math.round(o.km*9)/10)}</span><span>Paiement</span>${Math.round(o.amt*2)%3?'Carte bancaire':'Apple Pay'}</div>
   <div style="display:flex;gap:8px;margin-top:24px"><button class="btn pri" onclick="toast('Appel lancé vers ${o.cour[0]}')">Appeler le livreur</button><button class="btn" onclick="toast('Lien de suivi copié')">Copier le lien de suivi</button></div>`;
   setTimeout(()=>$('#drawer').classList.add('on'),10)}
 
