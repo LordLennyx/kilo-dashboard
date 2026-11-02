@@ -1,0 +1,85 @@
+{
+ "titre": "<em>Kilo</em>, tableau de bord",
+ "type": "Dashboard · Back-office",
+ "sous_titre": "Indicateurs, graphiques interactifs, suivi en direct, export CSV",
+ "couleur": "#d9480f",
+ "graine": 4,
+ "voix": [
+  [
+   3.3,
+   "Kilo, un tableau de bord qui rend les données lisibles, en un coup d'œil,"
+  ],
+  [
+   12.0,
+   "graphiques interactifs, livreurs suivis en direct,"
+  ],
+  [
+   18.5,
+   "commandes filtrées, triées, exportées, et un mode sombre."
+  ]
+ ],
+ "etapes": [
+  {
+   "t": "wait",
+   "ms": 500
+  },
+  {
+   "t": "click",
+   "sel": "#range button:nth-child(3)",
+   "pause": 900
+  },
+  {
+   "t": "hover",
+   "sel": "#hit",
+   "pause": 200
+  },
+  {
+   "t": "eval",
+   "js": "const h=document.querySelector('#hit'),r=h.getBoundingClientRect();let k=0;const id=setInterval(()=>{k+=.02;h.dispatchEvent(new PointerEvent('pointermove',{clientX:r.left+r.width*k,clientY:r.top+50,bubbles:true}));document.getElementById('__c').style.transform='translate('+(r.left+r.width*k-11)+'px,'+(r.top+40)+'px)';if(k>=.9)clearInterval(id)},40)",
+   "pause": 2200
+  },
+  {
+   "t": "scroll",
+   "y": 420,
+   "ms": 1400,
+   "pause": 1400
+  },
+  {
+   "t": "click",
+   "sel": ".nav a[data-v=commandes]",
+   "pause": 700
+  },
+  {
+   "t": "type",
+   "sel": "#q",
+   "text": "Bonapriso",
+   "delay": 60,
+   "pause": 700
+  },
+  {
+   "t": "click",
+   "sel": "#orders th[data-k=amt]",
+   "pause": 700
+  },
+  {
+   "t": "click",
+   "sel": "#orders tbody tr:nth-child(1)",
+   "pause": 1600
+  },
+  {
+   "t": "eval",
+   "js": "document.querySelector('#drawer').classList.remove('on')",
+   "pause": 400
+  },
+  {
+   "t": "click",
+   "sel": "#theme",
+   "pause": 300
+  },
+  {
+   "t": "click",
+   "sel": ".nav a[data-v=apercu]",
+   "pause": 1500
+  }
+ ]
+}
